@@ -211,7 +211,7 @@ function GameList({
   return (
     <div className="mt-10">
       <h3 className="text-lg font-semibold">🤽 Upcoming Panathinaikos games</h3>
-      <p className="mb-4 text-sm text-muted">Greek Water Polo League. Come cheer. Heckling is permitted.</p>
+      <p className="mb-4 text-sm text-muted">Greek League and Champions League. Come cheer. Heckling is permitted.</p>
       {games.length === 0 ? (
         <p className="text-sm text-muted">No games scheduled. Must be the off-season.</p>
       ) : (
@@ -228,6 +228,11 @@ function GameList({
                   <span className="ml-2 rounded bg-[#f0f0f0] px-1.5 py-0.5 text-[11px] font-semibold text-muted">
                     {g.home ? 'HOME' : 'AWAY'}
                   </span>
+                  {g.competition === 'champions' && (
+                    <span className="ml-1.5 rounded bg-[#e8eefc] px-1.5 py-0.5 text-[11px] font-semibold text-[#1d4ed8]">
+                      ⭐ CHAMPIONS LEAGUE
+                    </span>
+                  )}
                   {during(g) && <span className="ml-2 text-xs font-semibold text-[#e61e4d]">During your stay!</span>}
                 </p>
                 <p className="truncate text-sm text-muted">

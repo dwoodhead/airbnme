@@ -1,5 +1,7 @@
-// Panathinaikos AO fixtures, Greek Water Polo League 2026–27 (regular season).
-// Source: league schedule issued 3 Sept 2026. Times are Athens local time.
+// Panathinaikos fixtures for 2026–27. All times are Athens local time.
+// - Greek Water Polo League (regular season): league schedule issued 3 Sept 2026.
+// - LEN Champions League, Group D: draw results issued 21 Sept 2026
+//   (listed in CET; Athens is always one hour ahead).
 
 export type Game = {
   id: string
@@ -8,11 +10,12 @@ export type Game = {
   time: string | null // "8:00 PM"
   location: string | null
   home: boolean
+  competition: 'league' | 'champions'
 }
 
 type Fixture = [round: number, date: string, time: string, opponent: string, home: boolean, pool: string]
 
-const fixtures: Fixture[] = [
+const league: Fixture[] = [
   [1, '2026-09-26', '20:00', 'Ilisiakos', true, 'Serafio, Athens'],
   [2, '2026-10-03', '16:30', 'PAOK', false, 'Poseidonio, Thessaloniki'],
   [3, '2026-10-14', '21:30', 'Apollon Smyrnis', true, 'Serafio, Athens'],
@@ -41,17 +44,33 @@ const fixtures: Fixture[] = [
   [26, '2027-04-10', '15:00', 'Glyfada', false, 'Glyfada Pool'],
 ]
 
-export const games: Game[] = fixtures.map(([round, date, time, opponent, home, pool]) => {
-  const [h, m] = time.split(':').map(Number)
-  return {
-    id: `r${round}`,
-    title: home ? `Panathinaikos vs ${opponent}` : `${opponent} vs Panathinaikos`,
-    date,
-    time: `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`,
-    location: pool,
-    home,
+const champions: Fixture[] = [
+  [1, '2026-10-07', '21:30', 'CN Marseille', false, 'Marseille, France'],
+  [2, '2026-10-28', '21:30', 'FTC Telekom', true, 'Athens'],
+  [3, '2026-11-11', '19:30', 'CSA Steaua', true, 'Athens'],
+  [4, '2026-11-17', '21:30', 'CN Marseille', true, 'Athens'],
+  [5, '2026-12-01', '21:30', 'FTC Telekom', false, 'Budapest, Hungary'],
+  [6, '2026-12-15', '21:30', 'CSA Steaua', false, 'Bucharest, Romania'],
+]
+
+function toGame(competition: Game['competition']) {
+  return ([round, date, time, opponent, home, pool]: Fixture): Game => {
+    const [h, m] = time.split(':').map(Number)
+    return {
+      id: `${competition}-${round}`,
+      title: home ? `Panathinaikos vs ${opponent}` : `${opponent} vs Panathinaikos`,
+      date,
+      time: `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`,
+      location: pool,
+      home,
+      competition,
+    }
   }
-})
+}
+
+export const games: Game[] = [...league.map(toGame('league')), ...champions.map(toGame('champions'))].sort(
+  (a, b) => a.date.localeCompare(b.date),
+)
 
 // Games from today (Athens time) onward
 export function upcomingGames(today: string): Game[] {
