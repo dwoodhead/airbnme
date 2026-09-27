@@ -19,7 +19,7 @@ export const listing = {
     '🧺 Washing machine',
     '🌅 Sunset views',
     '🚌 Bus to Athens',
-    '🤽 Free water polo lessons (quality not guaranteed)',
+    '🤽 Mild chlorine smell',
   ],
   // Photos live in /public/photos. The first one is the big hero photo.
   photos: [
