@@ -90,31 +90,42 @@ export default function AvailabilityCalendar({
               const isEnd = iso === checkIn || iso === checkOut
               const dylanAway = isAway(iso)
               const inRange = checkIn && checkOut && iso > checkIn && iso < checkOut
+              // Away days join into one band per week row, rounded where the run starts/ends
+              const weekday = new Date(iso + 'T00:00:00Z').getUTCDay()
+              const prev = addDays(iso, -1)
+              const next = addDays(iso, 1)
+              const capStart = weekday === 0 || !isAway(prev) || prev.slice(0, 7) !== iso.slice(0, 7)
+              const capEnd = weekday === 6 || !isAway(next) || next.slice(0, 7) !== iso.slice(0, 7)
+              const band = dylanAway
+                ? `bg-[#fde2e2] ${capStart ? 'rounded-l-full' : ''} ${capEnd ? 'rounded-r-full' : ''}`
+                : ''
               return (
-                <button
-                  type="button"
-                  onClick={() => pick(iso)}
-                  disabled={past || booked}
-                  title={
-                    [dylanAway && 'Dylan is away', ...dayGames.map((g) => `🤽 ${g.title}${g.time ? ' · ' + g.time : ''}`)]
-                      .filter(Boolean)
-                      .join('\n') || undefined
-                  }
-                  className={[
-                    'relative mx-auto flex h-11 w-11 flex-col items-center justify-center rounded-full text-sm',
-                    past || booked ? 'cursor-default text-[#b0b0b0]' : 'font-medium hover:ring-1 hover:ring-black',
-                    booked && !past ? 'line-through' : '',
-                    isEnd ? 'bg-[#222] text-white hover:ring-0' : '',
-                    dylanAway && !isEnd ? 'bg-[#fde2e2]' : inRange ? 'bg-[#f0f0f0]' : '',
-                  ].join(' ')}
-                >
-                  {Number(iso.slice(8))}
-                  {dayGames.length > 0 && (
-                    <span className="absolute -bottom-0.5 text-[11px] leading-none" aria-label="water polo game">
-                      🤽
-                    </span>
-                  )}
-                </button>
+                <div className={`flex h-11 items-center ${band}`}>
+                  <button
+                    type="button"
+                    onClick={() => pick(iso)}
+                    disabled={past || booked}
+                    title={
+                      [dylanAway && 'Dylan is away', ...dayGames.map((g) => `🤽 ${g.title}${g.time ? ' · ' + g.time : ''}`)]
+                        .filter(Boolean)
+                        .join('\n') || undefined
+                    }
+                    className={[
+                      'relative mx-auto flex h-11 w-11 flex-col items-center justify-center rounded-full text-sm',
+                      past || booked ? 'cursor-default text-[#b0b0b0]' : 'font-medium hover:ring-1 hover:ring-black',
+                      booked && !past ? 'line-through' : '',
+                      isEnd ? 'bg-[#222] text-white hover:ring-0' : '',
+                      inRange ? 'bg-[#f0f0f0]' : '',
+                    ].join(' ')}
+                  >
+                    {Number(iso.slice(8))}
+                    {dayGames.length > 0 && (
+                      <span className="absolute -bottom-0.5 text-[11px] leading-none" aria-label="water polo game">
+                        🤽
+                      </span>
+                    )}
+                  </button>
+                </div>
               )
             }}
           />
@@ -125,7 +136,7 @@ export default function AvailabilityCalendar({
         <span><span className="line-through">12</span> Unavailable</span>
         <span>Open {fmt(availableFrom, { month: 'short', day: 'numeric' })} – {fmt(availableTo, { month: 'short', day: 'numeric' })}</span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3.5 w-3.5 rounded-full bg-[#fde2e2]" /> Dylan is away
+          <span className="inline-block h-3.5 w-6 rounded-full bg-[#fde2e2]" /> Dylan is away
         </span>
         <span>🤽 Dylan has a game</span>
         {checkIn && (
