@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { availableFrom, availableTo, type Booking } from '@/lib/bookings'
+import { availableFrom, availableTo, away, type Booking } from '@/lib/bookings'
 import type { Game } from '@/lib/games'
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
@@ -35,6 +35,7 @@ export default function AvailabilityCalendar({
 
   const isBooked = (iso: string) =>
     iso < availableFrom || iso > availableTo || bookings.some((b) => iso >= b.start && iso <= b.end)
+  const isAway = (iso: string) => away.some((b) => iso >= b.start && iso <= b.end)
   const gamesOn = (iso: string) => games.filter((g) => g.date === iso)
 
   function pick(iso: string) {
@@ -87,19 +88,24 @@ export default function AvailabilityCalendar({
               const booked = isBooked(iso)
               const dayGames = gamesOn(iso)
               const isEnd = iso === checkIn || iso === checkOut
+              const dylanAway = isAway(iso)
               const inRange = checkIn && checkOut && iso > checkIn && iso < checkOut
               return (
                 <button
                   type="button"
                   onClick={() => pick(iso)}
                   disabled={past || booked}
-                  title={dayGames.map((g) => `🤽 ${g.title}${g.time ? ' · ' + g.time : ''}`).join('\n') || undefined}
+                  title={
+                    [dylanAway && 'Dylan is away', ...dayGames.map((g) => `🤽 ${g.title}${g.time ? ' · ' + g.time : ''}`)]
+                      .filter(Boolean)
+                      .join('\n') || undefined
+                  }
                   className={[
                     'relative mx-auto flex h-11 w-11 flex-col items-center justify-center rounded-full text-sm',
                     past || booked ? 'cursor-default text-[#b0b0b0]' : 'font-medium hover:ring-1 hover:ring-black',
                     booked && !past ? 'line-through' : '',
                     isEnd ? 'bg-[#222] text-white hover:ring-0' : '',
-                    inRange ? 'bg-[#f0f0f0]' : '',
+                    dylanAway && !isEnd ? 'bg-[#fde2e2]' : inRange ? 'bg-[#f0f0f0]' : '',
                   ].join(' ')}
                 >
                   {Number(iso.slice(8))}
@@ -118,6 +124,9 @@ export default function AvailabilityCalendar({
       <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
         <span><span className="line-through">12</span> Unavailable</span>
         <span>Open {fmt(availableFrom, { month: 'short', day: 'numeric' })} – {fmt(availableTo, { month: 'short', day: 'numeric' })}</span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-3.5 w-3.5 rounded-full bg-[#fde2e2]" /> Dylan is away
+        </span>
         <span>🤽 Dylan has a game</span>
         {checkIn && (
           <button type="button" onClick={() => onChange(null, null)} className="font-semibold text-black underline">
