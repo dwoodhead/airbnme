@@ -214,10 +214,7 @@ function GameList({
   checkIn: string | null
   checkOut: string | null
 }) {
-  const [showAll, setShowAll] = useState(false)
   const during = (g: Game) => checkIn && checkOut && g.date >= checkIn && g.date <= checkOut
-  // By default, only games up to the end of the bookable window
-  const shown = showAll ? games : games.filter((g) => g.date <= availableTo)
 
   return (
     <div className="mt-10">
@@ -226,8 +223,9 @@ function GameList({
       {games.length === 0 ? (
         <p className="text-sm text-muted">No games scheduled. Must be the off-season.</p>
       ) : (
-        <ul className="divide-y divide-border rounded-xl border border-border">
-          {shown.map((g) => (
+        // Shows about 4 games; scroll for the rest of the season
+        <ul className="max-h-[284px] divide-y divide-border overflow-y-auto overscroll-contain rounded-xl border border-border">
+          {games.map((g) => (
             <li key={g.id} className={`flex gap-4 px-4 py-3 ${during(g) ? 'bg-[#fff8f6]' : ''}`}>
               <div className="w-14 shrink-0 text-center">
                 <div className="text-xs font-semibold uppercase text-[#e61e4d]">{fmt(g.date, { month: 'short' })}</div>
@@ -256,10 +254,8 @@ function GameList({
           ))}
         </ul>
       )}
-      {!showAll && shown.length < games.length && (
-        <button type="button" onClick={() => setShowAll(true)} className="mt-4 text-sm font-semibold underline">
-          Show the rest of the season ({games.length - shown.length} more)
-        </button>
+      {games.length > 4 && (
+        <p className="mt-2 text-xs text-muted">Scroll for all {games.length} games this season ↓</p>
       )}
     </div>
   )
