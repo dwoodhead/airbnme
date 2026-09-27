@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { Booking } from '@/lib/bookings'
+import { availableFrom, availableTo, type Booking } from '@/lib/bookings'
 import type { Game } from '@/lib/games'
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
@@ -35,7 +35,8 @@ export default function AvailabilityCalendar({
 }) {
   const [monthOffset, setMonthOffset] = useState(0)
 
-  const isBooked = (iso: string) => bookings.some((b) => iso >= b.start && iso <= b.end)
+  const isBooked = (iso: string) =>
+    iso < availableFrom || iso > availableTo || bookings.some((b) => iso >= b.start && iso <= b.end)
   const gamesOn = (iso: string) => games.filter((g) => g.date === iso)
 
   function pick(iso: string) {
@@ -46,7 +47,8 @@ export default function AvailabilityCalendar({
     onChange(checkIn, iso)
   }
 
-  const [ty, tm] = today.split('-').map(Number)
+  // Open on the first month that can actually be booked
+  const [ty, tm] = (today > availableFrom ? today : availableFrom).split('-').map(Number)
   const months = [0, 1].map((i) => new Date(Date.UTC(ty, tm - 1 + monthOffset + i, 1)))
 
   const nights =
@@ -116,7 +118,8 @@ export default function AvailabilityCalendar({
       </div>
 
       <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
-        <span><span className="line-through">12</span> Booked</span>
+        <span><span className="line-through">12</span> Unavailable</span>
+        <span>Open {fmt(availableFrom, { month: 'short', day: 'numeric' })} – {fmt(availableTo, { month: 'short', day: 'numeric' })}</span>
         <span>🤽 Dylan has a game</span>
         {checkIn && (
           <button type="button" onClick={() => onChange(null, null)} className="font-semibold text-black underline">
