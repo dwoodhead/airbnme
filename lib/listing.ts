@@ -21,13 +21,13 @@ export const listing = {
     '🚌 Bus to Athens',
     '🤽 Free water polo lessons (quality not guaranteed)',
   ],
-  // Swap these for real photos: drop files in /public/photos and use '/photos/xyz.jpg'.
+  // Photos live in /public/photos. The first one is the big hero photo.
   photos: [
-    { src: 'https://picsum.photos/seed/airbnme-1/1200/800', alt: 'Living room' },
-    { src: 'https://picsum.photos/seed/airbnme-2/600/400', alt: 'Bedroom' },
-    { src: 'https://picsum.photos/seed/airbnme-3/600/400', alt: 'Kitchen' },
-    { src: 'https://picsum.photos/seed/airbnme-4/600/400', alt: 'Balcony' },
-    { src: 'https://picsum.photos/seed/airbnme-5/600/400', alt: 'The beach nearby' },
+    { src: '/photos/living-room.webp', alt: 'Living room with sea view' },
+    { src: '/photos/bedroom.webp', alt: 'Bedroom with balcony' },
+    { src: '/photos/lounge.webp', alt: 'Lounge and balcony' },
+    { src: '/photos/dining-nook.webp', alt: 'Dining nook' },
+    { src: '/photos/hallway.webp', alt: 'Open-plan living and dining' },
   ],
   hostReview: {
     author: 'Dylan (the host)',

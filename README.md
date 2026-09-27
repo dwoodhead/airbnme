@@ -3,7 +3,7 @@
 A fake Airbnb listing for my apartment in Vouliagmeni, Greece, so friends can plan visits.
 
 - **Listing content** (title, summary, amenities, photos, review, location): [`lib/listing.ts`](lib/listing.ts).
-  Put real photos in `public/photos/` and reference them as `/photos/name.jpg`.
+  Photos live in `public/photos/`; the first one in the list is the big hero photo.
 - **Booked dates** (apartment unavailable): [`lib/bookings.ts`](lib/bookings.ts).
 - **Water polo games** come from a Google Calendar. Set these env vars (in `.env.local` locally, and in Vercel):
   - `GAMES_ICAL_URL`: the calendar's *Secret address in iCal format*
