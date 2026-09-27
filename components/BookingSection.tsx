@@ -12,7 +12,6 @@ export default function BookingSection({
   children,
   bookings,
   games,
-  gamesConfigured,
   today,
   airport,
   defaultOrigin,
@@ -20,7 +19,6 @@ export default function BookingSection({
   children: React.ReactNode
   bookings: Booking[]
   games: Game[]
-  gamesConfigured: boolean
   today: string
   airport: string
   defaultOrigin: string
@@ -35,7 +33,6 @@ export default function BookingSection({
         <AvailabilityCalendar
           bookings={bookings}
           games={games}
-          gamesConfigured={gamesConfigured}
           today={today}
           checkIn={checkIn}
           checkOut={checkOut}

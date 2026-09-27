@@ -1,14 +1,14 @@
 import BookingSection from '@/components/BookingSection'
 import { bookings } from '@/lib/bookings'
-import { getGames } from '@/lib/games'
+import { upcomingGames } from '@/lib/games'
 import { listing } from '@/lib/listing'
 
-// Re-fetch the game calendar at most once an hour
+// Rebuild hourly so past games drop off
 export const revalidate = 3600
 
-export default async function Home() {
-  const { games, configured } = await getGames()
+export default function Home() {
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Athens' })
+  const games = upcomingGames(today)
   const [hero, ...rest] = listing.photos
   const review = listing.hostReview
 
@@ -45,7 +45,6 @@ export default async function Home() {
           <BookingSection
             bookings={bookings}
             games={games}
-            gamesConfigured={configured}
             today={today}
             airport={listing.location.airport}
             defaultOrigin={listing.defaultOrigin}

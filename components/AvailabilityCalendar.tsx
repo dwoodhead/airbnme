@@ -19,7 +19,6 @@ const fmt = (iso: string, opts: Intl.DateTimeFormatOptions) =>
 export default function AvailabilityCalendar({
   bookings,
   games,
-  gamesConfigured,
   today,
   checkIn,
   checkOut,
@@ -27,7 +26,6 @@ export default function AvailabilityCalendar({
 }: {
   bookings: Booking[]
   games: Game[]
-  gamesConfigured: boolean
   today: string
   checkIn: string | null
   checkOut: string | null
@@ -128,7 +126,7 @@ export default function AvailabilityCalendar({
         )}
       </div>
 
-      <GameList games={games} configured={gamesConfigured} checkIn={checkIn} checkOut={checkOut} />
+      <GameList games={games} checkIn={checkIn} checkOut={checkOut} />
     </section>
   )
 }
@@ -189,28 +187,27 @@ function NavButton({
 
 function GameList({
   games,
-  configured,
   checkIn,
   checkOut,
 }: {
   games: Game[]
-  configured: boolean
   checkIn: string | null
   checkOut: string | null
 }) {
+  const [showAll, setShowAll] = useState(false)
   const during = (g: Game) => checkIn && checkOut && g.date >= checkIn && g.date <= checkOut
+  // By default, only games up to the end of the bookable window
+  const shown = showAll ? games : games.filter((g) => g.date <= availableTo)
 
   return (
     <div className="mt-10">
-      <h3 className="text-lg font-semibold">🤽 Upcoming water polo games</h3>
-      <p className="mb-4 text-sm text-muted">Come cheer. Heckling is permitted.</p>
-      {!configured ? (
-        <p className="text-sm text-muted">Game schedule not connected yet.</p>
-      ) : games.length === 0 ? (
+      <h3 className="text-lg font-semibold">🤽 Upcoming Panathinaikos games</h3>
+      <p className="mb-4 text-sm text-muted">Greek Water Polo League. Come cheer. Heckling is permitted.</p>
+      {games.length === 0 ? (
         <p className="text-sm text-muted">No games scheduled. Must be the off-season.</p>
       ) : (
         <ul className="divide-y divide-border rounded-xl border border-border">
-          {games.slice(0, 8).map((g) => (
+          {shown.map((g) => (
             <li key={g.id} className={`flex gap-4 px-4 py-3 ${during(g) ? 'bg-[#fff8f6]' : ''}`}>
               <div className="w-14 shrink-0 text-center">
                 <div className="text-xs font-semibold uppercase text-[#e61e4d]">{fmt(g.date, { month: 'short' })}</div>
@@ -219,6 +216,9 @@ function GameList({
               <div className="min-w-0">
                 <p className="font-medium">
                   {g.title}
+                  <span className="ml-2 rounded bg-[#f0f0f0] px-1.5 py-0.5 text-[11px] font-semibold text-muted">
+                    {g.home ? 'HOME' : 'AWAY'}
+                  </span>
                   {during(g) && <span className="ml-2 text-xs font-semibold text-[#e61e4d]">During your stay!</span>}
                 </p>
                 <p className="truncate text-sm text-muted">
@@ -230,6 +230,11 @@ function GameList({
             </li>
           ))}
         </ul>
+      )}
+      {!showAll && shown.length < games.length && (
+        <button type="button" onClick={() => setShowAll(true)} className="mt-4 text-sm font-semibold underline">
+          Show the rest of the season ({games.length - shown.length} more)
+        </button>
       )}
     </div>
   )

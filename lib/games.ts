@@ -1,82 +1,59 @@
-// Water polo games, pulled from a Google Calendar via its iCal address.
-// Set GAMES_ICAL_URL to the calendar's "Secret address in iCal format"
-// (Google Calendar → Settings → your calendar → Integrate calendar).
+// Panathinaikos AO fixtures, Greek Water Polo League 2026–27 (regular season).
+// Source: league schedule issued 3 Sept 2026. Times are Athens local time.
 
 export type Game = {
   id: string
   title: string
   date: string // "YYYY-MM-DD"
-  time: string | null // "6:30 PM", or null for all-day events
+  time: string | null // "8:00 PM"
   location: string | null
+  home: boolean
 }
 
-const TIMEZONE = process.env.GAMES_TIMEZONE || 'America/Los_Angeles'
+type Fixture = [round: number, date: string, time: string, opponent: string, home: boolean, pool: string]
 
-export async function getGames(): Promise<{ games: Game[]; configured: boolean }> {
-  const url = process.env.GAMES_ICAL_URL
-  if (!url) return { games: [], configured: false }
+const fixtures: Fixture[] = [
+  [1, '2026-09-26', '20:00', 'Ilisiakos', true, 'Serafio, Athens'],
+  [2, '2026-10-03', '16:30', 'PAOK', false, 'Poseidonio, Thessaloniki'],
+  [3, '2026-10-14', '21:30', 'Apollon Smyrnis', true, 'Serafio, Athens'],
+  [4, '2026-10-17', '18:30', 'Peristeri', false, 'Peristeri Pool'],
+  [5, '2026-10-24', '20:00', 'Chios', true, 'Serafio, Athens'],
+  [6, '2026-10-30', '21:30', 'Ydraikos', false, 'Glyfada Pool'],
+  [7, '2026-11-07', '18:00', 'Olympiacos', false, 'Piraeus'],
+  [8, '2026-11-14', '20:00', 'Palaio Faliro', true, 'Serafio, Athens'],
+  [9, '2026-11-21', '18:00', 'Panionios', false, 'Nea Smyrni Pool'],
+  [10, '2026-11-28', '20:00', 'Ethnikos Piraeus', true, 'Serafio, Athens'],
+  [11, '2026-12-05', '16:00', 'Vouliagmeni', false, 'Vouliagmeni Pool (walk from the apartment!)'],
+  [12, '2026-12-12', '15:45', 'Chania', false, 'Heraklion, Crete'],
+  [13, '2026-12-20', '20:00', 'Glyfada', true, 'Serafio, Athens'],
+  [14, '2026-12-23', '20:30', 'Ilisiakos', false, 'Ilisio, Athens'],
+  [15, '2027-01-23', '20:00', 'PAOK', true, 'Serafio, Athens'],
+  [16, '2027-01-27', '21:00', 'Apollon Smyrnis', false, 'Serafio, Athens'],
+  [17, '2027-01-30', '20:00', 'Peristeri', true, 'Serafio, Athens'],
+  [18, '2027-02-06', '17:00', 'Chios', false, 'Chios'],
+  [19, '2027-02-13', '20:00', 'Ydraikos', true, 'Serafio, Athens'],
+  [20, '2027-03-10', '20:00', 'Olympiacos', true, 'Serafio, Athens'],
+  [21, '2027-03-13', '18:00', 'Palaio Faliro', false, 'Palaio Faliro'],
+  [22, '2027-03-17', '21:00', 'Panionios', true, 'Serafio, Athens'],
+  [23, '2027-03-20', '14:00', 'Ethnikos Piraeus', false, 'Piraeus'],
+  [24, '2027-03-27', '20:00', 'Vouliagmeni', true, 'Serafio, Athens'],
+  [25, '2027-04-04', '16:00', 'Chania', true, 'Serafio, Athens'],
+  [26, '2027-04-10', '15:00', 'Glyfada', false, 'Glyfada Pool'],
+]
 
-  try {
-    const res = await fetch(url, { next: { revalidate: 3600 } })
-    if (!res.ok) throw new Error(`iCal fetch failed: ${res.status}`)
-    const today = new Date().toLocaleDateString('en-CA', { timeZone: TIMEZONE })
-    const games = parseIcs(await res.text())
-      .filter((g) => g.date >= today)
-      .sort((a, b) => (a.date + (a.time ?? '')).localeCompare(b.date + (b.time ?? '')))
-    return { games, configured: true }
-  } catch (err) {
-    console.error(err)
-    return { games: [], configured: true }
+export const games: Game[] = fixtures.map(([round, date, time, opponent, home, pool]) => {
+  const [h, m] = time.split(':').map(Number)
+  return {
+    id: `r${round}`,
+    title: home ? `Panathinaikos vs ${opponent}` : `${opponent} vs Panathinaikos`,
+    date,
+    time: `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`,
+    location: pool,
+    home,
   }
-}
+})
 
-function parseIcs(text: string): Game[] {
-  // Unfold continuation lines (RFC 5545: lines starting with space/tab continue the previous one)
-  const lines = text.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '').split(/\r?\n/)
-  const games: Game[] = []
-  let ev: Record<string, { params: string; value: string }> | null = null
-
-  for (const line of lines) {
-    if (line === 'BEGIN:VEVENT') ev = {}
-    else if (line === 'END:VEVENT' && ev) {
-      const start = ev.DTSTART && parseDate(ev.DTSTART.params, ev.DTSTART.value)
-      if (start && ev.STATUS?.value !== 'CANCELLED') {
-        games.push({
-          id: (ev.UID?.value ?? '') + start.date,
-          title: unescape(ev.SUMMARY?.value ?? 'Water polo game'),
-          date: start.date,
-          time: start.time,
-          location: ev.LOCATION ? unescape(ev.LOCATION.value) : null,
-        })
-      }
-      ev = null
-    } else if (ev) {
-      const m = line.match(/^([A-Z-]+)((?:;[^:]*)?):(.*)$/)
-      if (m) ev[m[1]] = { params: m[2], value: m[3] }
-    }
-  }
-  return games
-}
-
-function parseDate(params: string, value: string): { date: string; time: string | null } | null {
-  const m = value.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?$/)
-  if (!m) return null
-  const [, y, mo, d, h, mi, , z] = m
-  if (!h || params.includes('VALUE=DATE')) return { date: `${y}-${mo}-${d}`, time: null }
-
-  if (z) {
-    // UTC time: convert to the display timezone
-    const dt = new Date(Date.UTC(+y, +mo - 1, +d, +h, +mi))
-    return {
-      date: dt.toLocaleDateString('en-CA', { timeZone: TIMEZONE }),
-      time: dt.toLocaleTimeString('en-US', { timeZone: TIMEZONE, hour: 'numeric', minute: '2-digit' }),
-    }
-  }
-  // Floating or TZID time: show as written
-  const hour = +h % 12 || 12
-  return { date: `${y}-${mo}-${d}`, time: `${hour}:${mi} ${+h < 12 ? 'AM' : 'PM'}` }
-}
-
-function unescape(s: string): string {
-  return s.replace(/\\n/gi, ' ').replace(/\\([,;\\])/g, '$1')
+// Games from today (Athens time) onward
+export function upcomingGames(today: string): Game[] {
+  return games.filter((g) => g.date >= today)
 }
