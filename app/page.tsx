@@ -35,11 +35,19 @@ export default async function Home() {
           ★ 5.0 · <span className="underline">1 review</span> · <span className="underline">{listing.location.name}</span>
         </p>
 
-        {/* Photos */}
-        <div className="mt-6 grid h-[300px] grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-xl sm:h-[420px]">
-          <img src={hero.src} alt={hero.alt} className="col-span-4 row-span-2 h-full w-full object-cover sm:col-span-2" />
+        {/* Photos - mobile: swipeable horizontal carousel */}
+        <div className="no-scrollbar mt-6 flex gap-2 overflow-x-auto snap-x snap-mandatory sm:hidden">
+          {listing.photos.map((p) => (
+            <div key={p.src} className="h-[300px] w-full shrink-0 snap-start overflow-hidden rounded-xl">
+              <img src={p.src} alt={p.alt} className="h-full w-full object-cover" />
+            </div>
+          ))}
+        </div>
+        {/* Photos - desktop: Airbnb-style grid */}
+        <div className="mt-6 hidden h-[420px] grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-xl sm:grid">
+          <img src={hero.src} alt={hero.alt} className="col-span-2 row-span-2 h-full w-full object-cover" />
           {rest.map((p) => (
-            <img key={p.src} src={p.src} alt={p.alt} className="hidden h-full w-full object-cover sm:block" />
+            <img key={p.src} src={p.src} alt={p.alt} className="h-full w-full object-cover" />
           ))}
         </div>
 
