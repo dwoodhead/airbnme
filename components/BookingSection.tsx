@@ -5,6 +5,7 @@ import type { Booking } from '@/lib/bookings'
 import type { Game } from '@/lib/games'
 import AvailabilityCalendar from './AvailabilityCalendar'
 import FlightSearch from './FlightSearch'
+import ReservationCard from './ReservationCard'
 
 // Two-column body: listing details + calendar on the left, sticky flight card on the right.
 // Dates picked in the calendar pre-fill the flight search.
@@ -43,7 +44,15 @@ export default function BookingSection({
         />
       </div>
       <aside>
-        <div className="md:sticky md:top-24">
+        <div className="space-y-6">
+          <ReservationCard
+            checkIn={checkIn}
+            checkOut={checkOut}
+            onDatesChange={(inDate, outDate) => {
+              setCheckIn(inDate)
+              setCheckOut(outDate)
+            }}
+          />
           <FlightSearch
             airport={airport}
             defaultOrigin={defaultOrigin}

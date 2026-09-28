@@ -37,10 +37,7 @@ export default function FlightSearch({
 
   return (
     <div className="rounded-2xl border border-border bg-white p-6 shadow-[0_6px_16px_rgba(0,0,0,0.12)]">
-      <p className="text-xl">
-        <span className="font-semibold">€0</span> <span className="text-muted">night</span>
-      </p>
-      <p className="mb-5 text-sm text-muted">Payable in souvlaki and good company</p>
+      <h2 className="mb-4 text-lg font-semibold">✈️ Find flights</h2>
 
       <div className="overflow-hidden rounded-xl border border-[#b0b0b0]">
         <div className="grid grid-cols-2">
