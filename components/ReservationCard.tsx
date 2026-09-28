@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
+import { sendReservation } from '@/app/actions'
 import { availableFrom, availableTo } from '@/lib/bookings'
 
 const fmt = (iso: string) =>
@@ -26,6 +27,22 @@ export default function ReservationCard({
   const [error, setError] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
   const [done, setDone] = useState(false)
+  const [sendError, setSendError] = useState<string | null>(null)
+  const [sending, startSending] = useTransition()
+
+  function confirm() {
+    if (!checkIn || !checkOut) return
+    setSendError(null)
+    startSending(async () => {
+      const result = await sendReservation({ names, checkIn, checkOut, food })
+      if (result.ok) {
+        setConfirming(false)
+        setDone(true)
+      } else {
+        setSendError(result.error)
+      }
+    })
+  }
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -120,7 +137,7 @@ export default function ReservationCard({
           role="dialog"
           aria-modal="true"
           aria-labelledby="confirm-title"
-          onClick={() => setConfirming(false)}
+          onClick={() => !sending && setConfirming(false)}
         >
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h2 id="confirm-title" className="text-xl font-semibold">
@@ -133,24 +150,24 @@ export default function ReservationCard({
               <Row label="Check-out" value={fmt(checkOut)} />
               <Row label="Stay" value={`${nights} night${nights === 1 ? '' : 's'}`} />
             </dl>
+            {sendError && <p className="mt-4 text-sm text-[#c13515]">{sendError}</p>}
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
+                disabled={sending}
                 onClick={() => setConfirming(false)}
-                className="flex-1 rounded-lg border border-[#222] py-3 font-semibold hover:bg-[#f7f7f7]"
+                className="flex-1 rounded-lg border border-[#222] py-3 font-semibold hover:bg-[#f7f7f7] disabled:opacity-60"
               >
                 Go back
               </button>
               <button
                 type="button"
                 autoFocus
-                onClick={() => {
-                  setConfirming(false)
-                  setDone(true)
-                }}
-                className="flex-1 rounded-lg bg-gradient-to-r from-[#e61e4d] to-[#d70466] py-3 font-semibold text-white hover:opacity-90"
+                disabled={sending}
+                onClick={confirm}
+                className="flex-1 rounded-lg bg-gradient-to-r from-[#e61e4d] to-[#d70466] py-3 font-semibold text-white hover:opacity-90 disabled:opacity-60"
               >
-                Confirm
+                {sending ? 'Sending…' : 'Confirm'}
               </button>
             </div>
           </div>
