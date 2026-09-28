@@ -2,11 +2,13 @@ import BookingSection from '@/components/BookingSection'
 import { bookings } from '@/lib/bookings'
 import { upcomingGames } from '@/lib/games'
 import { listing } from '@/lib/listing'
+import { getReservations } from '@/lib/reservations'
 
-// Rebuild hourly so past games drop off
-export const revalidate = 3600
+// Refresh every minute so new bookings show up (and past games drop off)
+export const revalidate = 60
 
-export default function Home() {
+export default async function Home() {
+  const reservations = await getReservations()
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Athens' })
   const games = upcomingGames(today)
   const [hero, ...rest] = listing.photos
@@ -45,6 +47,7 @@ export default function Home() {
           <BookingSection
             bookings={bookings}
             games={games}
+            reservations={reservations}
             today={today}
           >
             {/* Overview */}

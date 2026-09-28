@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { availableFrom, availableTo } from '@/lib/bookings'
 
 export type Reservation = {
@@ -47,5 +48,7 @@ export async function sendReservation(r: Reservation): Promise<{ ok: true } | { 
     console.error('Saving reservation failed', err)
     return { ok: false, error: "We couldn't save your reservation. Please try again, or text Dylan." }
   }
+  // Show the new booking on the calendar for everyone
+  revalidatePath('/')
   return { ok: true }
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { availableFrom, availableTo, type Booking } from '@/lib/bookings'
 import type { Game } from '@/lib/games'
+import type { ReservationDates } from '@/lib/reservations'
 import AvailabilityCalendar from './AvailabilityCalendar'
 import ReservationCard from './ReservationCard'
 
@@ -12,15 +13,19 @@ export default function BookingSection({
   children,
   bookings,
   games,
+  reservations,
   today,
 }: {
   children: React.ReactNode
   bookings: Booking[]
   games: Game[]
+  reservations: ReservationDates[]
   today: string
 }) {
   const [checkIn, setCheckIn] = useState<string | null>(null)
   const [checkOut, setCheckOut] = useState<string | null>(null)
+  // Includes a booking just made on this page, before the server-side list refreshes
+  const [justBooked, setJustBooked] = useState<ReservationDates[]>([])
 
   const setDates = (inDate: string | null, outDate: string | null) => {
     setCheckIn(inDate)
@@ -36,11 +41,22 @@ export default function BookingSection({
           <AvailabilityCalendar
             bookings={bookings}
             games={games}
+            reservations={withoutDuplicates([...reservations, ...justBooked])}
             today={today}
             checkIn={checkIn}
             checkOut={checkOut}
             onChange={setDates}
-            reservation={<ReservationCard checkIn={checkIn} checkOut={checkOut} onDatesChange={setDates} />}
+            reservation={
+              <ReservationCard
+                checkIn={checkIn}
+                checkOut={checkOut}
+                onDatesChange={setDates}
+                onBooked={(r) => {
+                  setJustBooked((prev) => [...prev, r])
+                  setDates(null, null)
+                }}
+              />
+            }
           />
         </div>
       </div>
@@ -51,6 +67,15 @@ export default function BookingSection({
       </aside>
     </div>
   )
+}
+
+// A booking made on this page also comes back in the refreshed server list; show it once
+function withoutDuplicates(list: ReservationDates[]) {
+  const seen = new Set<string>()
+  return list.filter((r) => {
+    const key = `${r.names}|${r.checkIn}|${r.checkOut}`
+    return seen.has(key) ? false : (seen.add(key), true)
+  })
 }
 
 function ReserveTeaser() {

@@ -17,10 +17,12 @@ export default function ReservationCard({
   checkIn,
   checkOut,
   onDatesChange,
+  onBooked,
 }: {
   checkIn: string | null
   checkOut: string | null
   onDatesChange: (checkIn: string | null, checkOut: string | null) => void
+  onBooked: (reservation: { names: string; checkIn: string; checkOut: string }) => void
 }) {
   const [names, setNames] = useState('')
   const [food, setFood] = useState('')
@@ -38,6 +40,7 @@ export default function ReservationCard({
       if (result.ok) {
         setConfirming(false)
         setDone(true)
+        onBooked({ names: names.trim(), checkIn, checkOut })
       } else {
         setSendError(result.error)
       }

@@ -3,8 +3,11 @@
 import { useState } from 'react'
 import { availableFrom, availableTo, away, type Booking } from '@/lib/bookings'
 import type { Game } from '@/lib/games'
+import type { ReservationDates } from '@/lib/reservations'
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+
+const BAND_COLORS = { stay: 'bg-[#ebebeb]', friends: 'bg-[#dbeafe]', away: 'bg-[#fde2e2]' }
 
 // Date helpers on "YYYY-MM-DD" strings (UTC math avoids timezone drift)
 const toIso = (d: Date) => d.toISOString().slice(0, 10)
@@ -19,6 +22,7 @@ const fmt = (iso: string, opts: Intl.DateTimeFormatOptions) =>
 export default function AvailabilityCalendar({
   bookings,
   games,
+  reservations,
   today,
   checkIn,
   checkOut,
@@ -27,6 +31,7 @@ export default function AvailabilityCalendar({
 }: {
   bookings: Booking[]
   games: Game[]
+  reservations: ReservationDates[]
   today: string
   checkIn: string | null
   checkOut: string | null
@@ -39,6 +44,7 @@ export default function AvailabilityCalendar({
     iso < availableFrom || iso > availableTo || bookings.some((b) => iso >= b.start && iso <= b.end)
   const isAway = (iso: string) => away.some((b) => iso >= b.start && iso <= b.end)
   const gamesOn = (iso: string) => games.filter((g) => g.date === iso)
+  const bookedBy = (iso: string) => reservations.filter((r) => iso >= r.checkIn && iso <= r.checkOut)
 
   function pick(iso: string) {
     if (iso < today || isBooked(iso)) return
@@ -91,10 +97,17 @@ export default function AvailabilityCalendar({
               const dayGames = gamesOn(iso)
               const isEnd = iso === checkIn || iso === checkOut
               const dylanAway = isAway(iso)
-              // The selected stay (grey) and away days (red) are drawn as bands that join across
-              // neighbouring days, rounded where a run starts/ends or wraps to a new week row
+              const guests = bookedBy(iso)
+              // The selected stay (grey), friends' bookings (blue) and away days (red) are drawn as bands
+              // that join across neighbouring days, rounded where a run starts/ends or wraps to a new week row
               const bandOf = (d: string) =>
-                checkIn && checkOut && d >= checkIn && d <= checkOut ? 'stay' : isAway(d) ? 'away' : null
+                checkIn && checkOut && d >= checkIn && d <= checkOut
+                  ? 'stay'
+                  : bookedBy(d).length
+                    ? 'friends'
+                    : isAway(d)
+                      ? 'away'
+                      : null
               const kind = bandOf(iso)
               const weekday = new Date(iso + 'T00:00:00Z').getUTCDay()
               const prev = addDays(iso, -1)
@@ -102,25 +115,36 @@ export default function AvailabilityCalendar({
               const capStart = weekday === 0 || bandOf(prev) !== kind || prev.slice(0, 7) !== iso.slice(0, 7)
               const capEnd = weekday === 6 || bandOf(next) !== kind || next.slice(0, 7) !== iso.slice(0, 7)
               const band = kind
-                ? `${kind === 'stay' ? 'bg-[#ebebeb]' : 'bg-[#fde2e2]'} ${capStart ? 'rounded-l-full' : ''} ${capEnd ? 'rounded-r-full' : ''}`
+                ? `${BAND_COLORS[kind]} ${capStart ? 'rounded-l-full' : ''} ${capEnd ? 'rounded-r-full' : ''}`
                 : ''
+              const tooltip = [
+                ...guests.map((r) => `Booked by ${r.names}`),
+                ...(dylanAway ? ['Dylan is away'] : []),
+                ...dayGames.map((g) => `🤽 ${g.title}${g.time ? ' · ' + g.time : ''}`),
+              ]
               return (
-                <div className={`flex h-11 items-center ${band}`}>
+                <div className={`group relative flex h-11 items-center ${band}`}>
+                  {tooltip.length > 0 && (
+                    <div
+                      role="tooltip"
+                      className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded-lg bg-[#222] px-3 py-2 text-left text-xs leading-relaxed text-white shadow-lg group-hover:block"
+                    >
+                      {tooltip.map((line) => (
+                        <div key={line}>{line}</div>
+                      ))}
+                    </div>
+                  )}
                   <button
                     type="button"
                     onClick={() => pick(iso)}
                     disabled={past || booked}
-                    title={
-                      [dylanAway && 'Dylan is away', ...dayGames.map((g) => `🤽 ${g.title}${g.time ? ' · ' + g.time : ''}`)]
-                        .filter(Boolean)
-                        .join('\n') || undefined
-                    }
+                    aria-label={[fmt(iso, { month: 'long', day: 'numeric' }), ...tooltip].join('. ')}
                     className={[
                       'relative mx-auto flex h-11 w-11 flex-col items-center justify-center rounded-full text-sm',
                       past || booked ? 'cursor-default text-[#b0b0b0]' : 'font-medium hover:ring-1 hover:ring-black',
                       booked && !past ? 'line-through' : '',
                       isEnd ? 'bg-[#222] text-white hover:ring-0' : '',
-                      ].join(' ')}
+                    ].join(' ')}
                   >
                     {Number(iso.slice(8))}
                     {dayGames.length > 0 && (
@@ -140,7 +164,10 @@ export default function AvailabilityCalendar({
         <span><span className="line-through">12</span> Unavailable</span>
         <span>Open {fmt(availableFrom, { month: 'short', day: 'numeric' })} – {fmt(availableTo, { month: 'short', day: 'numeric' })}</span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3.5 w-6 rounded-full bg-[#fde2e2]" /> Dylan is away
+          <span className={`inline-block h-3.5 w-6 rounded-full ${BAND_COLORS.friends}`} /> Booked by friends
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className={`inline-block h-3.5 w-6 rounded-full ${BAND_COLORS.away}`} /> Dylan is away
         </span>
         <span>🤽 Dylan has a game</span>
         {checkIn && (
