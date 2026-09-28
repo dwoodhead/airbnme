@@ -25,6 +25,7 @@ export async function loginAction(
     path: '/',
   })
 
+  // Only return to a page on this site: "//evil.com" or "/\\evil.com" would leave it
   const from = String(formData.get('from') ?? '/')
-  redirect(from.startsWith('/') ? from : '/')
+  redirect(/^\/(?![/\\])/.test(from) ? from : '/')
 }
