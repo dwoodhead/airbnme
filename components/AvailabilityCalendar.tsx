@@ -56,7 +56,7 @@ export default function AvailabilityCalendar({
       : 0
 
   return (
-    <section id="availability" className="border-t border-border py-10">
+    <section id="availability" className="scroll-mt-24 py-10">
       <h2 className="text-2xl font-semibold">
         {nights ? `${nights} night${nights > 1 ? 's' : ''} in Vouliagmeni` : 'Availability'}
       </h2>
@@ -89,15 +89,18 @@ export default function AvailabilityCalendar({
               const dayGames = gamesOn(iso)
               const isEnd = iso === checkIn || iso === checkOut
               const dylanAway = isAway(iso)
-              const inRange = checkIn && checkOut && iso > checkIn && iso < checkOut
-              // Away days join into one band per week row, rounded where the run starts/ends
+              // The selected stay (grey) and away days (red) are drawn as bands that join across
+              // neighbouring days, rounded where a run starts/ends or wraps to a new week row
+              const bandOf = (d: string) =>
+                checkIn && checkOut && d >= checkIn && d <= checkOut ? 'stay' : isAway(d) ? 'away' : null
+              const kind = bandOf(iso)
               const weekday = new Date(iso + 'T00:00:00Z').getUTCDay()
               const prev = addDays(iso, -1)
               const next = addDays(iso, 1)
-              const capStart = weekday === 0 || !isAway(prev) || prev.slice(0, 7) !== iso.slice(0, 7)
-              const capEnd = weekday === 6 || !isAway(next) || next.slice(0, 7) !== iso.slice(0, 7)
-              const band = dylanAway
-                ? `bg-[#fde2e2] ${capStart ? 'rounded-l-full' : ''} ${capEnd ? 'rounded-r-full' : ''}`
+              const capStart = weekday === 0 || bandOf(prev) !== kind || prev.slice(0, 7) !== iso.slice(0, 7)
+              const capEnd = weekday === 6 || bandOf(next) !== kind || next.slice(0, 7) !== iso.slice(0, 7)
+              const band = kind
+                ? `${kind === 'stay' ? 'bg-[#ebebeb]' : 'bg-[#fde2e2]'} ${capStart ? 'rounded-l-full' : ''} ${capEnd ? 'rounded-r-full' : ''}`
                 : ''
               return (
                 <div className={`flex h-11 items-center ${band}`}>
@@ -115,8 +118,7 @@ export default function AvailabilityCalendar({
                       past || booked ? 'cursor-default text-[#b0b0b0]' : 'font-medium hover:ring-1 hover:ring-black',
                       booked && !past ? 'line-through' : '',
                       isEnd ? 'bg-[#222] text-white hover:ring-0' : '',
-                      inRange ? 'bg-[#f0f0f0]' : '',
-                    ].join(' ')}
+                      ].join(' ')}
                   >
                     {Number(iso.slice(8))}
                     {dayGames.length > 0 && (

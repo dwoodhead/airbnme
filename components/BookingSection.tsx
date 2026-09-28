@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import type { Booking } from '@/lib/bookings'
+import { availableFrom, availableTo, type Booking } from '@/lib/bookings'
 import type { Game } from '@/lib/games'
 import AvailabilityCalendar from './AvailabilityCalendar'
 import ReservationCard from './ReservationCard'
 
-// Two-column body: listing details + calendar on the left, reservation card on the right.
-// Dates picked in the calendar fill in the reservation card (and vice versa).
+// Listing details (with a small "check availability" card), then the calendar next to the
+// reservation form. Dates picked in the calendar fill in the form (and vice versa).
 export default function BookingSection({
   children,
   bookings,
@@ -22,34 +22,57 @@ export default function BookingSection({
   const [checkIn, setCheckIn] = useState<string | null>(null)
   const [checkOut, setCheckOut] = useState<string | null>(null)
 
+  const setDates = (inDate: string | null, outDate: string | null) => {
+    setCheckIn(inDate)
+    setCheckOut(outDate)
+  }
+
   return (
-    <div className="grid gap-12 md:grid-cols-[1fr_360px]">
-      <div className="min-w-0">
-        {children}
-        <AvailabilityCalendar
-          bookings={bookings}
-          games={games}
-          today={today}
-          checkIn={checkIn}
-          checkOut={checkOut}
-          onChange={(inDate, outDate) => {
-            setCheckIn(inDate)
-            setCheckOut(outDate)
-          }}
-        />
+    <>
+      <div className="grid gap-12 md:grid-cols-[1fr_360px]">
+        <div className="min-w-0">{children}</div>
+        <aside className="hidden md:block">
+          <div className="sticky top-24">
+            <ReserveTeaser />
+          </div>
+        </aside>
       </div>
-      <aside>
-        <div className="md:sticky md:top-24">
-          <ReservationCard
+
+      {/* Calendar and reservation form side by side, so friends pick dates and book in one place */}
+      <div className="grid gap-12 border-t border-border md:grid-cols-[1fr_360px]">
+        <div className="min-w-0">
+          <AvailabilityCalendar
+            bookings={bookings}
+            games={games}
+            today={today}
             checkIn={checkIn}
             checkOut={checkOut}
-            onDatesChange={(inDate, outDate) => {
-              setCheckIn(inDate)
-              setCheckOut(outDate)
-            }}
+            onChange={setDates}
           />
         </div>
-      </aside>
+        <aside className="pb-10 md:pt-10">
+          <div className="md:sticky md:top-24">
+            <ReservationCard checkIn={checkIn} checkOut={checkOut} onDatesChange={setDates} />
+          </div>
+        </aside>
+      </div>
+    </>
+  )
+}
+
+function ReserveTeaser() {
+  const fmt = (iso: string) =>
+    new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' })
+  return (
+    <div className="rounded-2xl border border-border bg-white p-6 shadow-[0_6px_16px_rgba(0,0,0,0.12)]">
+      <p className="text-lg font-semibold">Come visit!</p>
+      <p className="mt-1 text-sm text-muted">Open {fmt(availableFrom)} – {fmt(availableTo)}. Pick your dates and see when Dylan has games.</p>
+      <a
+        href="#availability"
+        className="mt-4 block rounded-lg bg-gradient-to-r from-[#e61e4d] to-[#d70466] py-3 text-center font-semibold text-white hover:opacity-90"
+      >
+        Check availability
+      </a>
     </div>
   )
 }

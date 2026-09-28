@@ -73,6 +73,7 @@ export default function ReservationCard({
 
   return (
     <Card>
+      <h2 className="mb-4 text-lg font-semibold">Reserve your stay</h2>
       <form onSubmit={submit} noValidate>
         <div className="overflow-hidden rounded-xl border border-[#b0b0b0]">
           <Field label="Name(s)">
