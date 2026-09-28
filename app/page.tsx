@@ -113,6 +113,14 @@ export default function Home() {
             loading="lazy"
           />
           <p className="mt-4 max-w-2xl text-muted">{listing.location.blurb}</p>
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(listing.location.mapQuery)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#222] px-4 py-2.5 text-sm font-semibold hover:bg-[#f7f7f7]"
+          >
+            📍 Open Vouliagmeni in Google Maps
+          </a>
         </section>
       </main>
 
