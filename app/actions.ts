@@ -11,8 +11,8 @@ export type Reservation = {
 
 const isoDate = /^\d{4}-\d{2}-\d{2}$/
 
-// Emails the host about a new reservation via Resend (https://resend.com).
-// Env: RESEND_API_KEY, BOOKING_EMAIL_TO, and optionally BOOKING_EMAIL_FROM.
+// Adds the reservation as a row in the host's Google Sheet, through the Apps Script web app
+// in google-apps-script/Code.gs. Env: BOOKING_SHEET_URL (the web app URL).
 export async function sendReservation(r: Reservation): Promise<{ ok: true } | { ok: false; error: string }> {
   const names = String(r.names ?? '').trim().slice(0, 200)
   const food = String(r.food ?? '').trim().slice(0, 200)
@@ -28,36 +28,24 @@ export async function sendReservation(r: Reservation): Promise<{ ok: true } | { 
     return { ok: false, error: 'Something about that reservation looks off. Please check the form.' }
   }
 
-  const apiKey = process.env.RESEND_API_KEY
-  const to = process.env.BOOKING_EMAIL_TO
-  if (!apiKey || !to) {
-    console.error('Reservation email not configured: set RESEND_API_KEY and BOOKING_EMAIL_TO')
+  const url = process.env.BOOKING_SHEET_URL
+  if (!url) {
+    console.error('Reservations not configured: set BOOKING_SHEET_URL')
     return { ok: false, error: "Reservations aren't hooked up yet. Text Dylan instead!" }
   }
 
   const nights = Math.round((Date.parse(checkOut) - Date.parse(checkIn)) / 86_400_000)
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: process.env.BOOKING_EMAIL_FROM || 'AirBnMe <onboarding@resend.dev>',
-      to,
-      subject: `New AirBnMe reservation: ${names} (${checkIn} → ${checkOut})`,
-      text: [
-        'New reservation on AirBnMe!',
-        '',
-        `Name(s): ${names}`,
-        `Check-in: ${checkIn}`,
-        `Check-out: ${checkOut}`,
-        `Nights: ${nights}`,
-        `Favorite Greek food: ${food || '(not given)'}`,
-      ].join('\n'),
-    }),
-  })
-
-  if (!res.ok) {
-    console.error('Resend error', res.status, await res.text())
-    return { ok: false, error: "We couldn't send your reservation. Please try again, or text Dylan." }
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ names, checkIn, checkOut, nights, food }),
+    })
+    const body = await res.json().catch(() => null)
+    if (!res.ok || !body?.ok) throw new Error(`Sheet responded ${res.status}`)
+  } catch (err) {
+    console.error('Saving reservation failed', err)
+    return { ok: false, error: "We couldn't save your reservation. Please try again, or text Dylan." }
   }
   return { ok: true }
 }
