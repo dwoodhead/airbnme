@@ -6,8 +6,8 @@ import type { Game } from '@/lib/games'
 import AvailabilityCalendar from './AvailabilityCalendar'
 import ReservationCard from './ReservationCard'
 
-// Listing details (with a small "check availability" card), then the calendar next to the
-// reservation form. Dates picked in the calendar fill in the form (and vice versa).
+// Listing details, calendar, reservation form and game list on the left; a sticky
+// "check availability" card on the right. Dates picked in the calendar fill in the form (and vice versa).
 export default function BookingSection({
   children,
   bookings,
@@ -28,19 +28,11 @@ export default function BookingSection({
   }
 
   return (
-    <>
-      <div className="grid gap-12 md:grid-cols-[1fr_360px]">
-        <div className="min-w-0">{children}</div>
-        <aside className="hidden md:block">
-          <div className="sticky top-24">
-            <ReserveTeaser />
-          </div>
-        </aside>
-      </div>
-
-      {/* Calendar and reservation form side by side, so friends pick dates and book in one place */}
-      <div className="grid gap-12 border-t border-border md:grid-cols-[1fr_360px]">
-        <div className="min-w-0">
+    <div className="grid gap-12 md:grid-cols-[1fr_360px]">
+      <div className="min-w-0">
+        {children}
+        {/* Calendar, then the reservation form, then the game list */}
+        <div className="border-t border-border">
           <AvailabilityCalendar
             bookings={bookings}
             games={games}
@@ -48,15 +40,16 @@ export default function BookingSection({
             checkIn={checkIn}
             checkOut={checkOut}
             onChange={setDates}
+            reservation={<ReservationCard checkIn={checkIn} checkOut={checkOut} onDatesChange={setDates} />}
           />
         </div>
-        <aside className="pb-10 md:pt-10">
-          <div className="md:sticky md:top-24">
-            <ReservationCard checkIn={checkIn} checkOut={checkOut} onDatesChange={setDates} />
-          </div>
-        </aside>
       </div>
-    </>
+      <aside className="hidden md:block">
+        <div className="sticky top-24">
+          <ReserveTeaser />
+        </div>
+      </aside>
+    </div>
   )
 }
 

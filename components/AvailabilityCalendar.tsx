@@ -23,6 +23,7 @@ export default function AvailabilityCalendar({
   checkIn,
   checkOut,
   onChange,
+  reservation,
 }: {
   bookings: Booking[]
   games: Game[]
@@ -30,6 +31,7 @@ export default function AvailabilityCalendar({
   checkIn: string | null
   checkOut: string | null
   onChange: (checkIn: string | null, checkOut: string | null) => void
+  reservation?: React.ReactNode // shown right under the calendar, above the game list
 }) {
   const [monthOffset, setMonthOffset] = useState(0)
 
@@ -147,6 +149,8 @@ export default function AvailabilityCalendar({
           </button>
         )}
       </div>
+
+      {reservation && <div className="mt-8">{reservation}</div>}
 
       <GameList games={games} checkIn={checkIn} checkOut={checkOut} />
     </section>
