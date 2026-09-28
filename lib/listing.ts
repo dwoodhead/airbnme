@@ -28,6 +28,9 @@ export const listing = {
     { src: '/photos/lounge.webp', alt: 'Lounge and balcony' },
     { src: '/photos/dining-nook.webp', alt: 'Dining nook' },
     { src: '/photos/hallway.webp', alt: 'Open-plan living and dining' },
+    { src: '/photos/beach-day.jpg', alt: 'Lunch and dominoes on the beach in Vouliagmeni' },
+    { src: '/photos/harbor-drive.jpg', alt: 'Dylan and the Fiat Panda by the water' },
+    { src: '/photos/greek-salad.webp', alt: 'Greek salad and cold beers at a local taverna' },
   ],
   hostReview: {
     author: 'Dylan (the host)',

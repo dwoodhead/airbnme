@@ -1,3 +1,4 @@
+import AllPhotos from '@/components/AllPhotos'
 import BookingSection from '@/components/BookingSection'
 import { bookings } from '@/lib/bookings'
 import { upcomingGames } from '@/lib/games'
@@ -44,11 +45,12 @@ export default async function Home() {
           ))}
         </div>
         {/* Photos - desktop: Airbnb-style grid */}
-        <div className="mt-6 hidden h-[420px] grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-xl sm:grid">
+        <div className="relative mt-6 hidden h-[420px] grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-xl sm:grid">
           <img src={hero.src} alt={hero.alt} className="col-span-2 row-span-2 h-full w-full object-cover" />
-          {rest.map((p) => (
+          {rest.slice(0, 4).map((p) => (
             <img key={p.src} src={p.src} alt={p.alt} className="h-full w-full object-cover" />
           ))}
+          {listing.photos.length > 5 && <AllPhotos photos={listing.photos} />}
         </div>
 
         <div className="mt-10">
