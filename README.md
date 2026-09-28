@@ -13,8 +13,6 @@ A fake Airbnb listing for my apartment in Vouliagmeni, Greece, so friends can pl
   - `BOOKING_EMAIL_TO`: where reservation emails go. Without a verified domain, Resend only
     delivers to the address you signed up with.
   - `BOOKING_EMAIL_FROM` (optional): defaults to `AirBnMe <onboarding@resend.dev>`.
-- **Flights**: Google Flights has no embeddable widget, so the flight card builds a search
-  and opens it on Google Flights. Dates picked in the availability calendar pre-fill it.
 
 ```bash
 npm install && npm run dev

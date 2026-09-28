@@ -4,25 +4,20 @@ import { useState } from 'react'
 import type { Booking } from '@/lib/bookings'
 import type { Game } from '@/lib/games'
 import AvailabilityCalendar from './AvailabilityCalendar'
-import FlightSearch from './FlightSearch'
 import ReservationCard from './ReservationCard'
 
-// Two-column body: listing details + calendar on the left, sticky flight card on the right.
-// Dates picked in the calendar pre-fill the flight search.
+// Two-column body: listing details + calendar on the left, reservation card on the right.
+// Dates picked in the calendar fill in the reservation card (and vice versa).
 export default function BookingSection({
   children,
   bookings,
   games,
   today,
-  airport,
-  defaultOrigin,
 }: {
   children: React.ReactNode
   bookings: Booking[]
   games: Game[]
   today: string
-  airport: string
-  defaultOrigin: string
 }) {
   const [checkIn, setCheckIn] = useState<string | null>(null)
   const [checkOut, setCheckOut] = useState<string | null>(null)
@@ -44,7 +39,7 @@ export default function BookingSection({
         />
       </div>
       <aside>
-        <div className="space-y-6">
+        <div className="md:sticky md:top-24">
           <ReservationCard
             checkIn={checkIn}
             checkOut={checkOut}
@@ -52,12 +47,6 @@ export default function BookingSection({
               setCheckIn(inDate)
               setCheckOut(outDate)
             }}
-          />
-          <FlightSearch
-            airport={airport}
-            defaultOrigin={defaultOrigin}
-            checkIn={checkIn}
-            checkOut={checkOut}
           />
         </div>
       </aside>

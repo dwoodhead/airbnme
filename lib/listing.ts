@@ -39,7 +39,5 @@ export const listing = {
     name: 'Vouliagmeni, Greece',
     blurb: "On the Athens Riviera, ~30 min from central Athens and ~35 min from Athens International Airport (ATH). Exact address shared after booking.",
     mapQuery: 'Vouliagmeni, Greece',
-    airport: 'ATH',
   },
-  defaultOrigin: 'SFO',
 }

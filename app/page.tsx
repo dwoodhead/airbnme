@@ -46,8 +46,6 @@ export default function Home() {
             bookings={bookings}
             games={games}
             today={today}
-            airport={listing.location.airport}
-            defaultOrigin={listing.defaultOrigin}
           >
             {/* Overview */}
             <section className="pb-8">

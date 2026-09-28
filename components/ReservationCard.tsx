@@ -73,11 +73,6 @@ export default function ReservationCard({
 
   return (
     <Card>
-      <p className="text-xl">
-        <span className="font-semibold">€0</span> <span className="text-muted">night</span>
-      </p>
-      <p className="mb-5 text-sm text-muted">Payable in souvlaki and good company</p>
-
       <form onSubmit={submit} noValidate>
         <div className="overflow-hidden rounded-xl border border-[#b0b0b0]">
           <Field label="Name(s)">
